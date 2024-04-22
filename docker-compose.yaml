@@ -1,0 +1,99 @@
+services:
+  redis:
+    image: redis
+    networks:
+      - back-net
+    volumes:
+      - ./healthchecks:/healthchecks
+    healthcheck:
+      test: ["CMD", "/healthchecks/redis.sh"]
+      interval: 5s
+      timeout: 30s
+      retries: 5
+      start_period: 10s
+  pgsql:
+    image: postgres:15-alpine
+    networks:
+      - back-net
+    environment:
+      POSTGRES_PASSWORD: example
+    volumes:
+      - ./healthchecks:/healthchecks
+    healthcheck:
+      test: ["CMD", "/healthchecks/postgres.sh"]
+      interval: 5s
+      timeout: 30s
+      retries: 5
+      start_period: 10s
+  nginx:
+    build: ./nginx
+    networks:
+      - front-net
+    depends_on:
+      - vote1
+      - vote2
+      - vote3
+      - vote4
+      - vote5
+    ports:
+      - 8000:8000
+  result:
+    build: ./result
+    networks:
+      - front-net
+      - back-net
+    depends_on:
+      - pgsql
+    ports:
+      - 4000:4000
+  # seed:
+  #   build: ./seed-data
+  #   networks:
+  #     - front-net
+  #   depends_on:
+  #     - nginx
+  worker:
+    build: ./worker
+    networks:
+      - back-net
+    depends_on:
+      - redis
+      - pgsql
+  vote1:
+    build: ./vote
+    networks:
+      - back-net
+      - front-net
+    depends_on:
+      - redis
+  vote2:
+    build: ./vote
+    networks:
+      - back-net
+      - front-net
+    depends_on:
+      - redis
+  vote3:
+    build: ./vote
+    networks:
+      - back-net
+      - front-net
+    depends_on:
+      - redis
+  vote4:
+    build: ./vote
+    networks:
+      - back-net
+      - front-net
+    depends_on:
+      - redis
+  vote5:
+    build: ./vote
+    networks:
+      - back-net
+      - front-net
+    depends_on:
+      - redis
+networks:
+  back-net:
+  front-net:
