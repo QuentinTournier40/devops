@@ -4,27 +4,69 @@ services:
     networks:
       - back-net
     volumes:
-      - ./healthchecks:/healthchecks
+      - ./healthchecks/redis.sh:/healthchecks/redis.sh:ro
     healthcheck:
-      test: ["CMD", "/healthchecks/redis.sh"]
+      test: [ "CMD", "/healthchecks/redis.sh" ]
       interval: 5s
       timeout: 30s
       retries: 5
       start_period: 10s
-  pgsql:
+  db:
     image: postgres:15-alpine
     networks:
       - back-net
     environment:
-      POSTGRES_PASSWORD: example
+      POSTGRES_PASSWORD: postgres
     volumes:
-      - ./healthchecks:/healthchecks
+      - ./healthchecks/postgres.sh:/healthchecks/postgres.sh:ro
+      - db-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD", "/healthchecks/postgres.sh"]
+      test: [ "CMD", "/healthchecks/postgres.sh" ]
       interval: 5s
       timeout: 30s
       retries: 5
       start_period: 10s
+  result:
+    build: ./result
+    networks:
+      - front-net
+      - back-net
+    depends_on:
+      db:
+        condition: service_healthy
+    ports:
+      - 4000:4000
+  seed:
+    build: ./seed-data
+    networks:
+      - front-net
+    depends_on:
+      - nginx
+  worker:
+    build: ./worker
+    networks:
+      - back-net
+    depends_on:
+      redis:
+        condition: service_healthy
+      db:
+        condition: service_healthy
+  vote1:
+    build: ./vote
+    networks:
+      - back-net
+      - front-net
+    depends_on:
+      redis:
+        condition: service_healthy
+  vote2:
+    build: ./vote
+    networks:
+      - back-net
+      - front-net
+    depends_on:
+      redis:
+        condition: service_healthy
   nginx:
     build: ./nginx
     networks:
@@ -32,68 +74,10 @@ services:
     depends_on:
       - vote1
       - vote2
-      - vote3
-      - vote4
-      - vote5
     ports:
       - 8000:8000
-  result:
-    build: ./result
-    networks:
-      - front-net
-      - back-net
-    depends_on:
-      - pgsql
-    ports:
-      - 4000:4000
-  # seed:
-  #   build: ./seed-data
-  #   networks:
-  #     - front-net
-  #   depends_on:
-  #     - nginx
-  worker:
-    build: ./worker
-    networks:
-      - back-net
-    depends_on:
-      - redis
-      - pgsql
-  vote1:
-    build: ./vote
-    networks:
-      - back-net
-      - front-net
-    depends_on:
-      - redis
-  vote2:
-    build: ./vote
-    networks:
-      - back-net
-      - front-net
-    depends_on:
-      - redis
-  vote3:
-    build: ./vote
-    networks:
-      - back-net
-      - front-net
-    depends_on:
-      - redis
-  vote4:
-    build: ./vote
-    networks:
-      - back-net
-      - front-net
-    depends_on:
-      - redis
-  vote5:
-    build: ./vote
-    networks:
-      - back-net
-      - front-net
-    depends_on:
-      - redis
 networks:
   back-net:
   front-net:
+volumes:
+  db-data:
