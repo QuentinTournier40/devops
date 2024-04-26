@@ -27,7 +27,9 @@ services:
       retries: 5
       start_period: 10s
   result:
-    build: ./result
+    image: europe-west9-docker.pkg.dev/verdant-descent-421106/vote-image/result
+    build:
+      context: ./result
     networks:
       - front-net
       - back-net
@@ -37,13 +39,17 @@ services:
     ports:
       - 4000:4000
   seed:
-    build: ./seed-data
+    image: europe-west9-docker.pkg.dev/verdant-descent-421106/vote-image/seed
+    build: 
+      context: ./seed-data
     networks:
       - front-net
     depends_on:
       - nginx
   worker:
-    build: ./worker
+    image: europe-west9-docker.pkg.dev/verdant-descent-421106/vote-image/worker
+    build: 
+      context: ./worker
     networks:
       - back-net
     depends_on:
@@ -52,7 +58,9 @@ services:
       db:
         condition: service_healthy
   vote1:
-    build: ./vote
+    image: europe-west9-docker.pkg.dev/verdant-descent-421106/vote-image/vote
+    build: 
+      context: ./vote
     networks:
       - back-net
       - front-net
@@ -60,7 +68,9 @@ services:
       redis:
         condition: service_healthy
   vote2:
-    build: ./vote
+    image: europe-west9-docker.pkg.dev/verdant-descent-421106/vote-image/vote
+    build: 
+      context: ./vote
     networks:
       - back-net
       - front-net
