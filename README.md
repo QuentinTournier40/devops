@@ -329,3 +329,19 @@ Alternatively, use `sed`:
 ```
     sed -e '/deletion_protection/s/true/false/' -i terraform.tfstate
 ```
+
+
+
+
+
+kubectl create -f .\k8s\pgsql-pvc.yaml
+kubectl create -f .\k8s\pgsql-deployment.yaml
+kubectl create -f .\k8s\pgsql-svc.yaml
+kubectl create -f .\k8s\redis-deployment.yaml
+kubectl create -f .\k8s\redis-svc.yaml
+kubectl create -f .\k8s\worker-deployment.yaml
+kubectl create -f .\k8s\vote-deployment.yaml
+kubectl create -f .\k8s\vote-svc.yaml
+kubectl create -f .\k8s\result-deployment.yaml
+kubectl create -f .\k8s\result-svc.yaml
+kubectl create -f .\k8s\seed-job.yaml

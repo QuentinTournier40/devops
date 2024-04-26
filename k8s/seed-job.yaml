@@ -1,0 +1,12 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: seed
+spec:
+  template:
+    spec:
+      containers:
+      - name: seed
+        image: europe-west9-docker.pkg.dev/verdant-descent-421106/vote-image/seed
+      restartPolicy: Never
+  backoffLimit: 0

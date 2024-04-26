@@ -44,8 +44,6 @@ services:
       context: ./seed-data
     networks:
       - front-net
-    depends_on:
-      - nginx
   worker:
     image: europe-west9-docker.pkg.dev/verdant-descent-421106/vote-image/worker
     build: 
@@ -77,15 +75,6 @@ services:
     depends_on:
       redis:
         condition: service_healthy
-  nginx:
-    build: ./nginx
-    networks:
-      - front-net
-    depends_on:
-      - vote1
-      - vote2
-    ports:
-      - 8000:8000
 networks:
   back-net:
   front-net:

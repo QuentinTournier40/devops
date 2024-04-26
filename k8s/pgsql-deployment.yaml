@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: db
+spec:
+  selector:
+    matchLabels:
+      app: db
+  replicas: 1
+  template:
+    metadata:
+      name: db
+      labels:
+        app: db
+    spec:
+      containers:
+      - image: postgres:15-alpine
+        name: db
+        env:
+        - name: POSTGRES_PASSWORD
+          value: postgres
+        volumeMounts:
+          - mountPath: /var/lib/postgresql/data
+            subPath: data
+            name: db-data
+      volumes:
+      - name: db-data
+        persistentVolumeClaim:
+          claimName: db-pvc 
