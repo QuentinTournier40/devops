@@ -1,21 +1,21 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: db
+  name: pgsql-deployment
 spec:
   selector:
     matchLabels:
-      app: db
+      app: pgsql
   replicas: 1
   template:
     metadata:
-      name: db
+      name: pgsql-replicaset
       labels:
-        app: db
+        app: pgsql
     spec:
       containers:
       - image: postgres:15-alpine
-        name: db
+        name: pgsql-pod
         env:
         - name: POSTGRES_PASSWORD
           value: postgres

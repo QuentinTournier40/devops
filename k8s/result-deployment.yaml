@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: result
+  name: result-deployment
 spec:
   selector:
     matchLabels:
@@ -9,10 +9,14 @@ spec:
   replicas: 1
   template:
     metadata:
-      name: result
+      name: result-replicaset
       labels:
         app: result
     spec:
       containers:
       - image: europe-west9-docker.pkg.dev/verdant-descent-421106/vote-image/result
-        name: result
+        name: result-pod
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 4000

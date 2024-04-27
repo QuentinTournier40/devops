@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: vote
+  name: vote-deployment
 spec:
   selector:
     matchLabels:
@@ -9,10 +9,10 @@ spec:
   replicas: 5
   template:
     metadata:
-      name: vote
+      name: vote-replicaset
       labels:
         app: vote
     spec:
       containers:
       - image: europe-west9-docker.pkg.dev/verdant-descent-421106/vote-image/vote
-        name: vote
+        name: vote-pod

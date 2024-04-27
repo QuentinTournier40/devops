@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: redis
+  name: redis-deployment
 spec:
   selector:
     matchLabels:
@@ -9,10 +9,10 @@ spec:
   replicas: 1
   template:
     metadata:
-      name: redis
+      name: redis-replicaset
       labels:
         app: redis
     spec:
       containers:
       - image: redis
-        name: redis
+        name: redis-pod
