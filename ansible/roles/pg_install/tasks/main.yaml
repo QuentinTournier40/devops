@@ -1,0 +1,87 @@
+- name: Install postgresql-15
+  ansible.builtin.apt:
+    name: postgresql-15
+    state: present
+  become: true
+
+- name: Install python3-psycopg2
+  ansible.builtin.apt:
+    name: python3-psycopg2
+    state: present
+  become: true
+
+- name: Start postgres
+  ansible.builtin.service:
+    name: postgresql
+    state: started
+
+- name: Create a new database with name "postgres"
+  community.postgresql.postgresql_db:
+    name: "{{ username }}"
+    comment: My new bd
+  become_user: postgres
+  become: true
+
+- name: Connect to postgres database, create {{ username }} user
+  community.postgresql.postgresql_user:
+    db: postgres
+    name: "{{ username }}"
+    password: "{{ password }}"
+  become_user: postgres
+  become: true
+
+- name: Grant privs to {{ username }}
+  community.postgresql.postgresql_privs:
+    database: postgres
+    state: present
+    privs: all
+    type: database
+    role: "{{ username }}"
+  become_user: postgres
+  become: true
+  notify: restart postgresql
+
+- name: Find hba_conf file path
+  postgresql_query:
+    query: "SHOW hba_file;"
+    db: postgres
+    login_host: localhost
+    login_user: "{{ username }}"
+    login_password: "{{ password }}"
+  register: hba_conf_dest
+  become_user: postgres
+  become: true
+
+- name: Create pg_hba.conf file if not exists
+  ansible.builtin.file:
+    path: "{{ hba_conf_dest.query_result[0].hba_file }}"
+    state: touch
+    mode: 0600
+    owner: "{{ username }}"
+    group: "{{ username }}"
+  become: true
+  become_user: "{{ username }}"
+
+- name: Grant {{ username }} access to databases.
+  community.postgresql.postgresql_pg_hba:
+    dest: "{{ hba_conf_dest.query_result[0].hba_file }}"
+    contype: host
+    users: "{{ username }}"
+    address: all
+    databases: postgres
+    method: md5
+  become_user: postgres
+  become: true
+
+- name: Set address
+  community.postgresql.postgresql_set:
+    name: listen_addresses
+    value: 0.0.0.0
+  become_user: postgres
+  become: true
+
+- name: Restart postgresql
+  ansible.builtin.service:
+    name: postgresql
+    state: restarted
+  become: true

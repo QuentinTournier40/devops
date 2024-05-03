@@ -1,0 +1,8 @@
+- name: Install pg
+  hosts: all
+  vars:
+    username: postgres
+    password: mdp123
+    hba_conf_dest:
+  roles:
+    - pg_install
