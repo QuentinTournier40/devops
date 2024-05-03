@@ -16,3 +16,7 @@ spec:
       containers:
       - image: europe-west9-docker.pkg.dev/verdant-descent-421106/vote-image/vote
         name: vote-pod
+        livenessProbe:
+          httpGet:
+            path: /
+            port: 5000

@@ -14,7 +14,7 @@ spec:
         app: pgsql
     spec:
       containers:
-      - image: postgres:15-alpine
+      - image: europe-west9-docker.pkg.dev/verdant-descent-421106/vote-image/pgsql
         name: pgsql-pod
         env:
         - name: POSTGRES_PASSWORD

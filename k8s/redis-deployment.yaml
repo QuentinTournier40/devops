@@ -14,5 +14,5 @@ spec:
         app: redis
     spec:
       containers:
-      - image: redis
+      - image: europe-west9-docker.pkg.dev/verdant-descent-421106/vote-image/pgsql
         name: redis-pod
