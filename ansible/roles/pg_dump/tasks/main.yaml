@@ -1,0 +1,19 @@
+- name: Dump postgres
+  become: true
+  become_user: postgres
+  postgresql_db:
+    name: postgres
+    state: dump
+    target: /tmp/mydb.sql
+    encoding: UTF8
+
+- name: Fetch database dump file
+  fetch:
+    src: /tmp/mydb.sql
+    dest: ./
+    flat: yes
+
+- name: Remove database dump file
+  file:
+    path: /tmp/mydb.sql
+    state: absent

@@ -5,3 +5,14 @@ all:
       ansible_user: Cub
       ansible_port: 22
       ansible_ssh_private_key_file: "~/.ssh/google_compute_engine"
+
+    PrimaryVM:
+      ansible_host: 34.163.131.86
+      ansible_user: Cub
+      ansible_port: 22
+      ansible_ssh_private_key_file: "~/.ssh/google_compute_engine"
+    StandbyVM:
+      ansible_host: 34.163.213.0
+      ansible_user: Cub
+      ansible_port: 22
+      ansible_ssh_private_key_file: "~/.ssh/google_compute_engine"

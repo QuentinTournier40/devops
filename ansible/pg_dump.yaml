@@ -1,0 +1,5 @@
+- name: Dump pg
+  hosts: all
+  vars:
+  roles:
+    - pg_dump
