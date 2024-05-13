@@ -1,0 +1,153 @@
+- name: Connect to postgres database, create replicator user
+  community.postgresql.postgresql_user:
+    db: postgres
+    name: replicator
+    password: replicator
+    role_attr_flags: replication
+  become_user: postgres
+  become: true
+
+- name: Find hba_conf file path
+  postgresql_query:
+    query: "SHOW hba_file;"
+    db: postgres
+  register: hba_conf_dest
+  become_user: postgres
+  become: true
+
+- name: Create pg_hba.conf file if not exists
+  ansible.builtin.file:
+    path: "{{ hba_conf_dest.query_result[0].hba_file }}"
+    state: touch
+    mode: 0600
+    owner: postgres
+    group: postgres
+  become: true
+  become_user: postgres
+
+- name: Grant replicator access to databases.
+  community.postgresql.postgresql_pg_hba:
+    dest: "{{ hba_conf_dest.query_result[0].hba_file }}"
+    contype: host
+    users: replicator
+    address: all
+    databases: postgres
+    method: md5
+  become_user: postgres
+  become: true
+
+- name: Grant standby access to replication
+  when: postgresql_mode == "primary"
+  community.postgresql.postgresql_pg_hba:
+    dest: "{{ hba_conf_dest.query_result[0].hba_file }}"
+    contype: host
+    users: replicator
+    address: "{{ postgresql_standby_ip }}"
+    databases: replication
+    method: md5
+  become_user: postgres
+  become: true
+  notify: restart postgresql
+
+- name: Set PostgreSQL configuration for primary
+  loop:
+    - { name: 'wal_level', value: "replica" }
+    - { name: 'max_wal_senders', value: "10" }
+  community.postgresql.postgresql_set:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+  become_user: postgres
+  become: true
+  when: postgresql_mode == "primary"
+
+- name: Set wal_keep_size in postgresql.conf
+  become: true
+  become_user: postgres
+  lineinfile:
+    path: /etc/postgresql/15/main/postgresql.conf
+    regexp: '^#?wal_keep_size = .*'
+    line: 'wal_keep_size = 1000'
+  when: postgresql_mode == "primary"
+  notify: restart postgresql
+
+- name: Set PostgreSQL configuration for standby
+  loop:
+    - { name: 'listen_addresses', value: "0.0.0.0" }
+    - { name: 'hot_standby', value: "on" }
+  community.postgresql.postgresql_set:
+    name: "{{ item.name }}"
+    value: "{{ item.value }}"
+  become_user: postgres
+  become: true
+  when: postgresql_mode == "standby"
+
+- name: Create .pgpass file
+  vars:
+    hostname: "{{ postgresql_primary_ip }}"
+    port: 5432
+    database: replication
+    username: "replicator"
+    password: "replicator"
+  template:
+    src: pgpass.j2
+    dest: /tmp/.pgpass
+    mode: 0600
+    owner: postgres
+    group: postgres
+  become: true
+  when: postgresql_mode == "standby"
+
+- name: Get PostgreSQL data directory
+  postgresql_query:
+    query: "SHOW data_directory;"
+    db: postgres
+  register: pg_data_dir
+  become_user: postgres
+  become: true
+  when: postgresql_mode == "standby"
+
+- name: Stop postgresql service
+  ansible.builtin.service:
+    name: postgresql
+    state: stopped
+  become: true
+  when: postgresql_mode == "standby"
+
+- name: Remove PostgreSQL data directory
+  file:
+    path: "{{ pg_data_dir.query_result[0].data_directory }}"
+    state: absent
+  become: true
+  when: postgresql_mode == "standby"
+
+- name: Create the same directory
+  become: true
+  become_user: postgres
+  file:
+    path: "{{ pg_data_dir.query_result[0].data_directory }}"
+    state: directory
+    mode: 0700
+  when: postgresql_mode == "standby"
+
+- name: Replicate the database
+  environment: 
+    PGPASSFILE: "/tmp/.pgpass"
+  ansible.builtin.command:
+    cmd: "pg_basebackup -h {{ postgresql_primary_ip }} -U replicator -p 5432 -D {{ pg_data_dir.query_result[0].data_directory }} -X stream"
+  when: postgresql_mode == "standby"
+
+- name: Delete the PGPASS file
+  file:
+    path: /tmp/.pgpass
+    state: absent
+  become: true
+  when: postgresql_mode == "standby"
+
+- name: Replicate file
+  become: true
+  become_user: postgres
+  lineinfile:
+    path: /etc/postgresql/15/main/postgresql.conf
+    line: "primary_conninfo = 'host={{ postgresql_primary_ip }} port=5432 user=replicator password=replicator'"
+  when: postgresql_mode == "standby"
+  notify: restart postgresql

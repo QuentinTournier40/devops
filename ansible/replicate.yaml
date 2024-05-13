@@ -1,21 +1,50 @@
-- name: Replicate installation
-  vars:
+- hosts: PrimaryVM:StandbyVM
   roles:
     - role: pg_install
-      hosts:
-        - PrimaryVM
-        - StandbyVM
-      
-    - role: pg_replicate
-      hosts:
-        - PrimaryVM
-      vars:
-        postgresql_mode: "primary"
-        postgresql_standby_ip: 34.163.213.0
+  vars:
+    username: postgres
+    password: mdp123
+    hba_conf_dest:
 
+- hosts: PrimaryVM
+  roles:
     - role: pg_replicate
-      hosts:
-        - StandbyVM
-      vars:
-        postgresql_mode: "standby"
-        postgresql_master_ip: 34.163.131.86
+  vars:
+    postgresql_mode: "primary"
+    postgresql_standby_ip: 34.133.215.188
+
+- hosts: StandbyVM
+  roles:
+    - role: pg_replicate
+  vars:
+    postgresql_mode: "standby"
+    postgresql_primary_ip: 35.226.168.43
+
+# - name: Replicate installation
+#   vars:
+#   hosts:
+#     - PrimaryVM
+#     - StandbyVM
+#   roles:
+#     - role: pg_install
+#       hosts:
+#         - PrimaryVM
+#         - StandbyVM
+#       vars:
+#         username: postgres
+#         password: mdp123
+#         hba_conf_dest:
+
+#     - role: pg_replicate
+#       hosts:
+#         - PrimaryVM
+    #   vars:
+    #     postgresql_mode: "primary"
+    #     postgresql_standby_ip: 34.69.51.157
+
+    # - role: pg_replicate
+    #   hosts:
+    #     - StandbyVM
+    #   vars:
+        # postgresql_mode: "standby"
+        # postgresql_primary_ip: 35.226.168.43
