@@ -9,4 +9,3 @@ spec:
       - name: seed-pod
         image: europe-west9-docker.pkg.dev/verdant-descent-421106/vote-image/seed
       restartPolicy: Never
-  backoffLimit: 0

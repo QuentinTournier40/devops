@@ -1,5 +1,11 @@
 all:
   hosts:
+    PGSQL:
+      ansible_host: 35.226.168.43
+      ansible_user: Cub
+      ansible_port: 22
+      ansible_ssh_private_key_file: "~/.ssh/google_compute_engine"
+
     PrimaryVM:
       ansible_host: 35.226.168.43
       ansible_user: Cub

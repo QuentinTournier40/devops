@@ -1,5 +1,5 @@
 - name: Install pg
-  hosts: all
+  hosts: PGSQL
   vars:
     username: postgres
     password: mdp123
