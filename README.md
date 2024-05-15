@@ -94,7 +94,7 @@ spec:
 
 # Start the application
 
-Run these command.
+Run these commands.
 
 ```shell
 kubectl create -f ./k8s/pgsql-svc.yaml
