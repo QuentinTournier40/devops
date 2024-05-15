@@ -1,3 +1,22 @@
+# Progression
+
+## Docker
+  * ✅ Mandatory version
+  * ✅ Optional extended version
+
+## K8s
+  * ✅ Mandatory version
+  * ✅ LivenessProbe
+  * ❌ ConfigMap
+  * ❌ Kustomize
+  * ❌ HorizontalPodAutoscaler
+
+## Ansible
+  * ✅ Etape 1
+  * ✅ Etape 2
+  * ✅ Etape 3
+  * 🚧 Etape 4
+
 # Setup
 
 ## GCP config
@@ -108,3 +127,8 @@ kubectl create -f ./k8s/result-deployment.yaml
 kubectl create -f ./k8s/result-svc.yaml
 kubectl create -f ./k8s/seed-job.yaml
 ```
+
+# Authors
+GUIBOUT Clement
+
+TOURNIER Quentin
