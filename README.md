@@ -19,6 +19,13 @@
 
 # Setup
 
+## Clone the repository
+
+```shell
+git clone https://github.com/QuentinTournier40/devops
+cd devops
+```
+
 ## GCP config
 
 You first have to setup your authentication to GCP.
@@ -27,16 +34,28 @@ You first have to setup your authentication to GCP.
 gcloud auth login
 ```
 
+You need to create a new project on GCP. Give it a name e.g. voting-app.
+When the project is created, find the project id in the project list (only lowercase chars and dashes)
+
 You then have to set the project on which you want to work.
 
 ```shell
 gcloud config set project PROJECT-ID
 ```
 
-You can now create a Kubernetes cluster by using the command gcloud container clusters create (documentation)
+Confirm that your project is selected
 
 ```shell
-gcloud container clusters create NAME-CLUSTER --machine-type n1-standard-2 --num-nodes 3 --zone us-central1-c
+gcloud config get project
+```
+
+To be able to interact with GCP outside the web interface we also need to activate some services.
+Search for Kubernetes engine in the search bar on the top and activate the API.
+
+You can now create a Kubernetes cluster by using the command gcloud container clusters create
+
+```shell
+gcloud container clusters create devops --machine-type n1-standard-2 --num-nodes 3 --zone us-central1-c
 ```
 
 ## Push your Docker images into a GCP container registry
@@ -53,7 +72,7 @@ gcloud auth configure-docker europe-west9-docker.pkg.dev
 
 1. We then need to tag the images with the corresponding registry path, followed by their original name.
 
-    Within `docker-compose.yml` file, for each service that `build`s an image, add the `image` field. E.g. for the `result` service:
+    Within `docker-compose.yaml` file, for each service that `build`s an image, add the `image` field. E.g. for the `result` service:
       ```
       result:
         image: europe-west9-docker.pkg.dev/your-gcp-project/voting-image/result
@@ -90,18 +109,23 @@ gcloud compute instances add-tags INSTANCE_NAME --tags=db-server
   * For *Source IPv4 ranges* fill with 0.0.0.0/0.
   * In "Protocols and ports", select "TCP" and enter 5432 for Postgres.
 
-5. Change the value in the ansible inventory (`ansible/inventories/gcp.yaml`) with your ssh key and VM IP address.
+5. Change the value in the ansible inventory (`ansible/inventories/gcp.yaml`) with your ssh key and VM IP address and username on the vm.
 
 6. Run the playbook:
 
 ```shell
 cd ansible
+```
+
+You can start the playbooks as you want
+```shell
 ansible-playbook pg_install.yaml
+ansible-playbook pg_dump.yaml
 ```
 
 ## K8s
 
-1. Add to each kubernetes deployement the path to the image pushed in GCP.
+1. Add to each kubernetes deployement and job the path to the image pushed in GCP.
 
 ```yaml
 spec:
@@ -109,7 +133,7 @@ spec:
   - image: europe-west9-docker.pkg.dev/verdant-descent-421106/vote-image/redis
 ```
 
-2. Add the public address of you VM in the file `pgsql-es.yaml`
+2. Add the public address of your VM in the file `pgsql-es.yaml`
 
 # Start the application
 
